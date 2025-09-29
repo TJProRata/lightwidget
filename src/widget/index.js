@@ -48,8 +48,8 @@ import '../components/ChatWidget2/ChatWidget2.css';
       this.iframe = document.createElement('iframe');
       this.iframe.style.cssText = `
         position: fixed;
-        bottom: 0;
-        right: 0;
+        top: 0;
+        left: 0;
         border: none;
         z-index: 2147483647;
         width: 100%;
@@ -87,6 +87,7 @@ import '../components/ChatWidget2/ChatWidget2.css';
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://lightwidget.vercel.app/widget.css">
             <style>
               * {
                 margin: 0;
@@ -102,6 +103,10 @@ import '../components/ChatWidget2/ChatWidget2.css';
               #widget-root {
                 width: 100%;
                 height: 100%;
+              }
+              /* Enable pointer events on the widget */
+              .cw2-widget-wrapper {
+                pointer-events: auto !important;
               }
             </style>
           </head>
