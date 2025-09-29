@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "build:widget": "vite build --config vite.config.widget.js",
-    "preview": "vite preview"
+    "build:all": "npm run build && npm run build:widget",
+    "preview": "vite preview",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "clsx": "^2.1.1",
