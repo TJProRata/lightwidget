@@ -5,6 +5,7 @@ export default defineSchema({
   // Store customer accounts for multi-tenancy
   customers: defineTable({
     customerId: v.string(),
+    email: v.string(),
     apiKey: v.string(),
     openaiApiKey: v.string(),
     domain: v.string(),
