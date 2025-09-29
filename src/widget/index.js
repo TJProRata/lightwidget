@@ -8,7 +8,7 @@ import '../components/ChatWidget2/ChatWidget2.css';
   'use strict';
 
   const NAMESPACE = 'LightWidget';
-  const CONVEX_URL = 'https://impartial-vulture-278.convex.cloud'; // TODO: Make this configurable
+  const CONVEX_URL = 'https://polite-elephant-470.convex.cloud'; // Production Convex deployment
 
   class LightWidget {
     constructor(config) {
