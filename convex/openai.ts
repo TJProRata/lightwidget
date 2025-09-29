@@ -61,7 +61,7 @@ export const generateAnswer = action({
   },
 });
 
-// Generate answer with webpage context
+// Generate answer with webpage context (multi-tenant version)
 export const generateAnswerWithContext = action({
   args: {
     query: v.string(),
@@ -69,11 +69,38 @@ export const generateAnswerWithContext = action({
     sequenceNumber: v.number(),
     conversationPath: v.string(),
     url: v.string(),
+    apiKey: v.optional(v.string()), // Customer's widget API key
+    customerId: v.optional(v.string()), // Direct customer ID (alternative to apiKey)
   },
   handler: async (ctx, args) => {
-    // Initialize OpenAI client
+    let customerId = args.customerId;
+
+    // If customerId not provided, validate API key to get it
+    if (!customerId && args.apiKey) {
+      const customer = await ctx.runQuery(api.auth.validateApiKey, {
+        apiKey: args.apiKey
+      });
+      customerId = customer.customerId;
+    }
+
+    // Get customer's OpenAI API key
+    let openaiApiKey = process.env.OPENAI_API_KEY; // Fallback to env variable
+
+    if (customerId) {
+      try {
+        const customerKeys = await ctx.runQuery(api.auth.getCustomerOpenAIKey, {
+          customerId: customerId
+        });
+        openaiApiKey = customerKeys.openaiApiKey;
+      } catch (error) {
+        console.warn(`Customer ${customerId} has no OpenAI key, using fallback`);
+        // Use fallback key if customer hasn't configured their own
+      }
+    }
+
+    // Initialize OpenAI client with customer's key
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: openaiApiKey,
     });
 
     try {
