@@ -24,7 +24,7 @@
   var fjs = d.getElementsByTagName(s)[0];
   fjs.parentNode.insertBefore(js, fjs);
 
-})(window, document, 'script', 'lightWidget', 'https://widget.lightwidget.com/widget.js');
+})(window, document, 'script', 'lightWidget', 'https://lightwidget.vercel.app/widget.js');
 
 // Auto-init if config is present
 if (window.LightWidgetConfig) {
