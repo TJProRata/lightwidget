@@ -36,7 +36,7 @@ export const generateAnswer = action({
 
       const answer = completion.choices[0]?.message?.content || "No response generated";
 
-      // Save to database via mutation
+      // Save to database via mutation (with customerId for multi-tenancy)
       const messageId = await ctx.runMutation(api.messages.sendMessage, {
         query: args.query,
         answer: answer,
@@ -45,6 +45,8 @@ export const generateAnswer = action({
         ],
         suggestions: ['Tell me more', 'Related topics', 'Latest updates'],
         userId: args.userId,
+        customerId: undefined, // No customerId for legacy generateAnswer
+        sessionId: args.userId,
         sequenceNumber: args.sequenceNumber,
         conversationPath: args.conversationPath,
       });
@@ -104,9 +106,10 @@ export const generateAnswerWithContext = action({
     });
 
     try {
-      // Fetch webpage content from Convex
+      // Fetch webpage content from Convex (scoped to customer)
       const webpageContent = await ctx.runQuery(api.webpage.getWebpageContent, {
         url: args.url,
+        customerId: customerId,
       });
 
       // Build system message with webpage context
@@ -135,7 +138,7 @@ export const generateAnswerWithContext = action({
 
       const answer = completion.choices[0]?.message?.content || "No response generated";
 
-      // Save to database via mutation
+      // Save to database via mutation (with customerId for multi-tenancy)
       const messageId = await ctx.runMutation(api.messages.sendMessage, {
         query: args.query,
         answer: answer,
@@ -144,6 +147,8 @@ export const generateAnswerWithContext = action({
         ],
         suggestions: ['Tell me more', 'Related topics', 'Latest updates'],
         userId: args.userId,
+        customerId: customerId, // Use resolved customerId for multi-tenant support
+        sessionId: args.userId,
         sequenceNumber: args.sequenceNumber,
         conversationPath: args.conversationPath,
       });
