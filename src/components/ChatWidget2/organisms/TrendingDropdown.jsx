@@ -25,9 +25,12 @@ const EXPANDED_SEARCHES = [
   { text: "Stock market trends", count: "31.5k" }
 ];
 
-export const AskAIContainer = () => {
+export const AskAIContainer = ({ config = {} }) => {
   // Generate session ID
   const sessionId = useRef(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).current;
+
+  // Extract apiKey from config
+  const apiKey = config.apiKey;
 
   // Convex hooks
   const sendMessage = useMutation(api.messages.sendMessage);
@@ -39,6 +42,7 @@ export const AskAIContainer = () => {
   const generateAnswer = useAction(api.openai.generateAnswer);
   const generateAnswerWithContext = useAction(api.openai.generateAnswerWithContext);
   const storeWebpageContent = useMutation(api.webpage.storeWebpageContent);
+  const storeWebpageContentWithApiKey = useMutation(api.webpage.storeWebpageContentWithApiKey);
   const clearAllWebpageContent = useMutation(api.webpage.clearAllWebpageContent);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -88,13 +92,26 @@ export const AskAIContainer = () => {
         const content = document.body.innerText;
         const htmlSnippet = document.body.innerHTML.substring(0, 1000);
 
-        await storeWebpageContent({
-          url,
-          title,
-          content,
-          htmlSnippet,
-          userId: sessionId
-        });
+        // Use new mutation that validates API key
+        if (apiKey) {
+          await storeWebpageContentWithApiKey({
+            url,
+            title,
+            content,
+            htmlSnippet,
+            userId: sessionId,
+            apiKey: apiKey
+          });
+        } else {
+          // Fallback to legacy mutation for development
+          await storeWebpageContent({
+            url,
+            title,
+            content,
+            htmlSnippet,
+            userId: sessionId
+          });
+        }
 
         console.log("Webpage content captured and stored");
       } catch (error) {
@@ -103,7 +120,7 @@ export const AskAIContainer = () => {
     };
 
     capturePageContent();
-  }, [clearAllMessages, clearAllChatTabs, clearAllPromptHistory, clearAllWebpageContent, storeWebpageContent, sessionId]);
+  }, [clearAllMessages, clearAllChatTabs, clearAllPromptHistory, clearAllWebpageContent, storeWebpageContent, storeWebpageContentWithApiKey, sessionId, apiKey]);
 
   // Searching animation
   useEffect(() => {
@@ -248,7 +265,8 @@ export const AskAIContainer = () => {
         userId: sessionId,
         sequenceNumber: newSequenceNumber,
         conversationPath: newSequenceNumber.toString(),
-        url: window.location.href
+        url: window.location.href,
+        apiKey: apiKey
       });
 
       // Create display version with transformed sources for stacked display

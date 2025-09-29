@@ -1,7 +1,69 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { api } from "./_generated/api";
 
-// Store webpage content
+// Store webpage content with API key validation
+export const storeWebpageContentWithApiKey = mutation({
+  args: {
+    url: v.string(),
+    title: v.string(),
+    content: v.string(),
+    htmlSnippet: v.optional(v.string()),
+    userId: v.optional(v.string()),
+    apiKey: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let customerId: string | undefined = undefined;
+
+    // Validate API key if provided
+    if (args.apiKey) {
+      const customer = await ctx.runQuery(api.auth.validateApiKey, {
+        apiKey: args.apiKey
+      });
+      customerId = customer.customerId;
+    }
+
+    // Check if content for this URL already exists for this customer
+    let query = ctx.db.query("webpageContent");
+
+    if (customerId) {
+      query = query.withIndex("by_customer_id", (q) =>
+        q.eq("customerId", customerId)
+      );
+    }
+
+    const allContent = await query.collect();
+    const existing = allContent.find(c => c.url === args.url);
+
+    if (existing) {
+      // Update existing content
+      await ctx.db.patch(existing._id, {
+        title: args.title,
+        content: args.content,
+        htmlSnippet: args.htmlSnippet,
+        timestamp: Date.now(),
+        userId: args.userId,
+        customerId: customerId,
+      });
+      return existing._id;
+    }
+
+    // Insert new content
+    const id = await ctx.db.insert("webpageContent", {
+      url: args.url,
+      title: args.title,
+      content: args.content,
+      htmlSnippet: args.htmlSnippet,
+      timestamp: Date.now(),
+      userId: args.userId,
+      customerId: customerId,
+    });
+
+    return id;
+  },
+});
+
+// Store webpage content (legacy, direct customerId)
 export const storeWebpageContent = mutation({
   args: {
     url: v.string(),

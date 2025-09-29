@@ -3,7 +3,8 @@ import { AskAIContainer } from './organisms/TrendingDropdown';
 import './ChatWidget2.css';
 
 export const ChatWidget2 = ({
-  position = 'bottom-center'
+  position = 'bottom-center',
+  config = {}
 }) => {
   const positionClasses = {
     'bottom-right': 'bottom-6 right-6',
@@ -16,7 +17,7 @@ export const ChatWidget2 = ({
 
   return (
     <div className={`cw2-widget-wrapper fixed ${positionClasses[position]} z-50`}>
-      <AskAIContainer />
+      <AskAIContainer config={config} />
     </div>
   );
 };
