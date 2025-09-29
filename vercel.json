@@ -1,22 +1,10 @@
 {
-  "buildCommand": "npm run build && npm run build:widget",
+  "buildCommand": "npm run build && npm run build:widget && cp src/widget/loader.js dist/loader.js && cp dist/widget/widget.js dist/widget.js && cp dist/widget/widget.css dist/widget.css",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
-    {
-      "source": "/widget.js",
-      "destination": "/dist/widget/widget.js"
-    },
-    {
-      "source": "/widget.css",
-      "destination": "/dist/widget/widget.css"
-    },
-    {
-      "source": "/loader.js",
-      "destination": "/src/widget/loader.js"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
