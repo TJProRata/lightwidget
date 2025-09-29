@@ -4,6 +4,8 @@ import Home from './pages/Home';
 import Technology from './pages/Technology';
 import Business from './pages/Business';
 import Science from './pages/Science';
+import AdminDashboard from './pages/admin/Dashboard';
+import CustomerDetail from './pages/admin/CustomerDetail';
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
         <Route path="/technology" element={<Technology />} />
         <Route path="/business" element={<Business />} />
         <Route path="/science" element={<Science />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/customers/:id" element={<CustomerDetail />} />
       </Routes>
     </Router>
   );
