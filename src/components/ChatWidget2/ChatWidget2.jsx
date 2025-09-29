@@ -6,17 +6,24 @@ export const ChatWidget2 = ({
   position = 'bottom-center',
   config = {}
 }) => {
-  const positionClasses = {
-    'bottom-right': 'bottom-6 right-6',
-    'bottom-left': 'bottom-6 left-6',
-    'bottom-center': 'bottom-6 left-1/2 transform -translate-x-1/2',
-    'top-right': 'top-6 right-6',
-    'top-left': 'top-6 left-6',
-    'top-center': 'top-6 left-1/2 transform -translate-x-1/2'
+  const positionStyles = {
+    'bottom-right': { bottom: '24px', right: '24px' },
+    'bottom-left': { bottom: '24px', left: '24px' },
+    'bottom-center': { bottom: '24px', left: '50%', transform: 'translateX(-50%)' },
+    'top-right': { top: '24px', right: '24px' },
+    'top-left': { top: '24px', left: '24px' },
+    'top-center': { top: '24px', left: '50%', transform: 'translateX(-50%)' }
+  };
+
+  const widgetStyle = {
+    position: 'fixed',
+    zIndex: 2147483647,
+    pointerEvents: 'auto',
+    ...positionStyles[position]
   };
 
   return (
-    <div className={`cw2-widget-wrapper fixed ${positionClasses[position]} z-50`}>
+    <div className="cw2-widget-wrapper" style={widgetStyle}>
       <AskAIContainer config={config} />
     </div>
   );

@@ -1,12 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+  <html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TechNews Today</title>
+    <title>LightWidget Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1 { color: #333; }
+      p { color: #666; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <h1>Welcome to My Test Page</h1>
+    <p>This is a test page to demonstrate the LightWidget AI chat widget.</p>
+    <p>The widget should appear in the bottom center of the page.</p>
+    <p>Click on it to start chatting!</p>
+
+    <h2>About This Page</h2>
+    <p>This page contains information about artificial intelligence and machine learning.</p>
+    <p>AI is transforming how we interact with technology.</p>
+
+    <!-- LightWidget Installation -->
+    <script>
+      window.LightWidgetConfig = {
+        apiKey: 'lw_GXh0rJaBIjUsfGilw0MKJ3QJRqstYCI7',
+        position: 'bottom-center',
+        theme: 'light'
+      };
+    </script>
+    <script src="https://lightwidget.vercel.app/widget.js" async></script>
   </body>
-</html>
+  </html>
