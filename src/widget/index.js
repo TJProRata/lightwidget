@@ -46,16 +46,27 @@ import '../components/ChatWidget2/ChatWidget2.css';
 
       // Create iframe for isolation
       this.iframe = document.createElement('iframe');
+
+      // Position based on config
+      const positionStyles = {
+        'bottom-right': 'bottom: 24px; right: 24px;',
+        'bottom-left': 'bottom: 24px; left: 24px;',
+        'bottom-center': 'bottom: 24px; left: 50%; transform: translateX(-50%);',
+        'top-right': 'top: 24px; right: 24px;',
+        'top-left': 'top: 24px; left: 24px;',
+        'top-center': 'top: 24px; left: 50%; transform: translateX(-50%);'
+      };
+
+      const positionStyle = positionStyles[this.config.position] || positionStyles['bottom-center'];
+
       this.iframe.style.cssText = `
         position: fixed;
-        top: 0;
-        left: 0;
+        ${positionStyle}
         border: none;
         z-index: 2147483647;
-        width: 100%;
-        height: 100%;
+        width: 500px;
+        height: 600px;
         background: transparent;
-        pointer-events: none;
       `;
       this.iframe.setAttribute('title', 'LightWidget Chat');
       this.iframe.setAttribute('id', 'lightwidget-iframe');

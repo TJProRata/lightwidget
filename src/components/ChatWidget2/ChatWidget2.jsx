@@ -16,10 +16,12 @@ export const ChatWidget2 = ({
   };
 
   const widgetStyle = {
-    position: 'fixed',
-    zIndex: 2147483647,
-    pointerEvents: 'auto',
-    ...positionStyles[position]
+    position: 'absolute',
+    bottom: '24px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 1,
+    pointerEvents: 'auto'
   };
 
   return (
