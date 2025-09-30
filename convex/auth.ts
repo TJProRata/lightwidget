@@ -29,36 +29,41 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   ],
   callbacks: {
     async createOrUpdateUser(ctx, args) {
-      // Check if user exists
-      const existingUser = args.existingUserId
-        ? await ctx.db.get(args.existingUserId)
-        : null;
+      try {
+        // Check if user exists
+        const existingUser = args.existingUserId
+          ? await ctx.db.get(args.existingUserId)
+          : null;
 
-      // If user exists, just update the profile
-      if (existingUser) {
-        await ctx.db.patch(existingUser._id, {
-          ...args.profile,
-        });
-        return existingUser._id;
-      }
-
-      // Create new user with required fields
-      const userId = await ctx.db.insert("users", {
-        ...args.profile,
-        apiKey: generateApiKey(),
-        openaiApiKey: "",
-        domain: "",
-        isActive: true,
-        plan: "free",
-        createdAt: Date.now(),
-        settings: {
-          theme: "light",
-          position: "bottom-center",
-          brandColor: "#C081FF"
+        // If user exists, just update the profile
+        if (existingUser) {
+          await ctx.db.patch(existingUser._id, {
+            ...args.profile,
+          });
+          return existingUser._id;
         }
-      });
 
-      return userId;
+        // Create new user with required fields
+        const userId = await ctx.db.insert("users", {
+          ...args.profile,
+          apiKey: generateApiKey(),
+          openaiApiKey: "",
+          domain: "",
+          isActive: true,
+          plan: "free",
+          createdAt: Date.now(),
+          settings: {
+            theme: "light",
+            position: "bottom-center",
+            brandColor: "#C081FF"
+          }
+        });
+
+        return userId;
+      } catch (error) {
+        console.error("Error in createOrUpdateUser:", error);
+        throw error;
+      }
     },
   },
 });
