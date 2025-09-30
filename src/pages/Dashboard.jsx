@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { SignOutButton } from '../components/auth/SignOutButton';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ export default function Dashboard() {
   const currentUser = useQuery(api.users.currentUser.getCurrentUser);
   const initializeUser = useMutation(api.users.initializeUser.initializeUser);
   const updateSettings = useMutation(api.users.updateWidgetSettings.updateWidgetSettings);
-  const initiateCrawl = useMutation(api.siteCrawler.initiateCrawl);
+  const initiateCrawl = useAction(api.siteCrawler.initiateCrawl);
   const crawlStatus = useQuery(api.siteCrawler.getCrawlStatus);
   const indexedPages = useQuery(api.siteCrawler.getIndexedPages, { limit: 10 });
   const clearPages = useMutation(api.siteCrawler.clearIndexedPages);
