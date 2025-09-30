@@ -1,24 +1,35 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Technology from './pages/Technology';
-import Business from './pages/Business';
-import Science from './pages/Science';
-import AdminDashboard from './pages/admin/Dashboard';
-import CustomerDetail from './pages/admin/CustomerDetail';
-import NewCustomer from './pages/admin/NewCustomer';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
+import Dashboard from './pages/Dashboard';
+import DemoPage from './pages/DemoPage';
+import AdminUsers from './pages/AdminUsers';
+import { ProtectedRoute } from './components/routes/ProtectedRoute';
+import { AdminRoute } from './components/routes/AdminRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/technology" element={<Technology />} />
-        <Route path="/business" element={<Business />} />
-        <Route path="/science" element={<Science />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/customers/new" element={<NewCustomer />} />
-        <Route path="/admin/customers/:id" element={<CustomerDetail />} />
+        <Route path="/" element={<Landing />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/demo/:userId" element={<DemoPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </Router>
   );

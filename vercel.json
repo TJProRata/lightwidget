@@ -6,7 +6,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!widget\\.js|widget\\.css|loader\\.js).*)",
       "destination": "/index.html"
     }
   ],

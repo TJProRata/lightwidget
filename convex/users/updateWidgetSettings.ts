@@ -7,7 +7,6 @@ import { requireAuth } from "./helpers";
  */
 export const updateWidgetSettings = mutation({
   args: {
-    openaiApiKey: v.optional(v.string()),
     domain: v.optional(v.string()),
     theme: v.optional(v.string()),
     position: v.optional(v.string()),
@@ -23,10 +22,6 @@ export const updateWidgetSettings = mutation({
 
     // Build update object
     const updates: any = {};
-
-    if (args.openaiApiKey !== undefined) {
-      updates.openaiApiKey = args.openaiApiKey;
-    }
 
     if (args.domain !== undefined) {
       updates.domain = args.domain;

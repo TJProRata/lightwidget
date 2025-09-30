@@ -85,24 +85,9 @@ export const generateAnswerWithContext = action({
       customerId = customer.customerId;
     }
 
-    // Get customer's OpenAI API key
-    let openaiApiKey = process.env.OPENAI_API_KEY; // Fallback to env variable
-
-    if (customerId) {
-      try {
-        const customerKeys = await ctx.runQuery(api.auth.getCustomerOpenAIKey, {
-          customerId: customerId
-        });
-        openaiApiKey = customerKeys.openaiApiKey;
-      } catch (error) {
-        console.warn(`Customer ${customerId} has no OpenAI key, using fallback`);
-        // Use fallback key if customer hasn't configured their own
-      }
-    }
-
-    // Initialize OpenAI client with customer's key
+    // Always use centralized OpenAI API key from environment
     const openai = new OpenAI({
-      apiKey: openaiApiKey,
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
     try {
