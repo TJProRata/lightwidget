@@ -98,6 +98,7 @@ import '../components/ChatWidget2/ChatWidget2.css';
                 height: 100%;
                 overflow: hidden;
                 background: transparent;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
               }
               #widget-root {
                 width: 100%;
