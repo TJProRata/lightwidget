@@ -17,13 +17,13 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     // Google OAuth fields
     googleId: v.optional(v.string()),
-    // LightWidget custom fields
-    apiKey: v.string(),
+    // LightWidget custom fields - ALL OPTIONAL for auth compatibility
+    apiKey: v.optional(v.string()), // Will be set in auth callback
     openaiApiKey: v.optional(v.string()),
     domain: v.optional(v.string()),
-    isActive: v.boolean(),
-    plan: v.string(), // "free", "pro", "enterprise"
-    createdAt: v.number(),
+    isActive: v.optional(v.boolean()), // Will default to true in auth callback
+    plan: v.optional(v.string()), // Will default to "free" in auth callback
+    createdAt: v.optional(v.number()), // Will be set in auth callback
     settings: v.optional(v.object({
       theme: v.string(),
       position: v.string(),

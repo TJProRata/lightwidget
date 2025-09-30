@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { ChatWidget2 } from '../components/ChatWidget2/ChatWidget2';
 
 const Business = () => {
   const currentUser = useQuery(api.users.currentUser.getCurrentUser);
+
+  useEffect(() => {
+    if (currentUser?.apiKey) {
+      // Set up widget configuration
+      window.LightWidgetConfig = {
+        apiKey: currentUser.apiKey,
+        position: 'bottom-center',
+        theme: 'light'
+      };
+
+      // Load widget script
+      const script = document.createElement('script');
+      script.src = '/loader.js';
+      script.async = true;
+      document.body.appendChild(script);
+
+      return () => {
+        // Cleanup
+        document.body.removeChild(script);
+        delete window.LightWidgetConfig;
+      };
+    }
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
@@ -285,16 +307,7 @@ const Business = () => {
         </div>
       </footer>
 
-      {/* Chat Widget */}
-      {currentUser && (
-        <ChatWidget2
-          position="bottom-center"
-          config={{
-            apiKey: currentUser.apiKey,
-            userId: currentUser._id
-          }}
-        />
-      )}
+      {/* Chat Widget loads via script tag - see useEffect above */}
     </div>
   );
 };

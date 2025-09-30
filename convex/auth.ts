@@ -30,22 +30,37 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   callbacks: {
     async createOrUpdateUser(ctx, args) {
       try {
+        console.log("createOrUpdateUser called with:", {
+          existingUserId: args.existingUserId,
+          profile: args.profile,
+          provider: args.provider
+        });
+
         // Check if user exists
         const existingUser = args.existingUserId
           ? await ctx.db.get(args.existingUserId)
           : null;
 
-        // If user exists, just update the profile
+        // If user exists, update the profile but preserve custom fields
         if (existingUser) {
-          await ctx.db.patch(existingUser._id, {
+          const updateData = {
             ...args.profile,
-          });
+            // Preserve existing custom fields
+            apiKey: existingUser.apiKey || generateApiKey(),
+            isActive: existingUser.isActive !== undefined ? existingUser.isActive : true,
+            plan: existingUser.plan || "free",
+            createdAt: existingUser.createdAt || Date.now(),
+          };
+
+          await ctx.db.patch(existingUser._id, updateData);
+          console.log("Updated existing user:", existingUser._id);
           return existingUser._id;
         }
 
-        // Create new user with required fields
-        const userId = await ctx.db.insert("users", {
+        // Create new user with all required custom fields
+        const newUserData = {
           ...args.profile,
+          // Set all required custom fields with defaults
           apiKey: generateApiKey(),
           openaiApiKey: "",
           domain: "",
@@ -57,8 +72,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
             position: "bottom-center",
             brandColor: "#C081FF"
           }
-        });
+        };
 
+        const userId = await ctx.db.insert("users", newUserData);
+        console.log("Created new user:", userId);
         return userId;
       } catch (error) {
         console.error("Error in createOrUpdateUser:", error);
