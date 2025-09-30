@@ -60,14 +60,30 @@ export const sendMessage = mutation({
       }
     }
 
+    // Handle userId vs sessionId properly
+    let finalUserId = undefined;
+    let finalSessionId = args.sessionId;
+
+    // Check if userId is actually a session string
+    if (args.userId && args.userId.startsWith('session_')) {
+      // It's a session string, not a real user ID
+      finalSessionId = args.userId;
+      // Use customerId as the actual userId if provided
+      if (args.customerId) {
+        finalUserId = args.customerId;
+      }
+    } else if (args.userId && !args.userId.startsWith('session_')) {
+      // It's a real user ID
+      finalUserId = args.userId;
+    }
+
     const messageId = await ctx.db.insert("messages", {
       query: args.query,
       answer: args.answer,
       sources: args.sources,
       suggestions: args.suggestions,
-      userId: args.userId,
-      customerId: args.customerId,
-      sessionId: args.sessionId,
+      userId: finalUserId,
+      sessionId: finalSessionId,
       tabId: args.tabId,
       parentMessageId: args.parentMessageId,
       sequenceNumber: sequenceNumber,
