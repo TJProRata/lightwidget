@@ -11,6 +11,11 @@ export const updateWidgetSettings = mutation({
     theme: v.optional(v.string()),
     position: v.optional(v.string()),
     brandColor: v.optional(v.string()),
+    // Crawl settings
+    enableFullSiteCrawl: v.optional(v.boolean()),
+    maxPages: v.optional(v.number()),
+    maxDepth: v.optional(v.number()),
+    excludePatterns: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuth(ctx);
@@ -33,6 +38,30 @@ export const updateWidgetSettings = mutation({
         theme: args.theme ?? user.settings?.theme ?? "light",
         position: args.position ?? user.settings?.position ?? "bottom-center",
         brandColor: args.brandColor ?? user.settings?.brandColor ?? "#C081FF",
+      };
+    }
+
+    // Update crawl settings if any crawl fields are provided
+    if (
+      args.enableFullSiteCrawl !== undefined ||
+      args.maxPages !== undefined ||
+      args.maxDepth !== undefined ||
+      args.excludePatterns !== undefined
+    ) {
+      const existingCrawlSettings = user.crawlSettings || {
+        enableFullSiteCrawl: false,
+        maxPages: 100,
+        maxDepth: 3,
+        excludePatterns: [],
+        crawlStatus: 'idle'
+      };
+
+      updates.crawlSettings = {
+        ...existingCrawlSettings,
+        enableFullSiteCrawl: args.enableFullSiteCrawl ?? existingCrawlSettings.enableFullSiteCrawl,
+        maxPages: args.maxPages ?? existingCrawlSettings.maxPages,
+        maxDepth: args.maxDepth ?? existingCrawlSettings.maxDepth,
+        excludePatterns: args.excludePatterns ?? existingCrawlSettings.excludePatterns,
       };
     }
 

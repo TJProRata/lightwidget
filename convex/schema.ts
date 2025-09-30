@@ -28,6 +28,17 @@ export default defineSchema({
       theme: v.string(),
       position: v.string(),
       brandColor: v.string()
+    })),
+    // Website crawl settings
+    crawlSettings: v.optional(v.object({
+      enableFullSiteCrawl: v.boolean(),
+      maxPages: v.number(),
+      maxDepth: v.number(),
+      excludePatterns: v.array(v.string()),
+      lastCrawlDate: v.optional(v.number()),
+      crawlStatus: v.string(), // 'idle', 'in_progress', 'completed', 'error'
+      totalPagesIndexed: v.optional(v.number()),
+      lastCrawlError: v.optional(v.string())
     }))
   })
     .index("email", ["email"])
@@ -92,4 +103,26 @@ export default defineSchema({
     timestamp: v.number(),
     sessionId: v.optional(v.string()), // End-user session
   }).index("by_user", ["userId"]),
+
+  // Store crawled site pages for full-site context
+  sitePages: defineTable({
+    userId: v.id("users"),
+    url: v.string(),
+    title: v.string(),
+    content: v.string(), // Extracted text content
+    htmlSnippet: v.string(), // First 1000 chars of HTML
+    metadata: v.object({
+      description: v.optional(v.string()),
+      keywords: v.optional(v.array(v.string())),
+      headings: v.optional(v.array(v.string()))
+    }),
+    depth: v.number(), // Crawl depth from root URL
+    lastCrawled: v.number(),
+    status: v.string(), // 'pending', 'crawled', 'error'
+    parentUrl: v.optional(v.string()),
+    error: v.optional(v.string())
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_url", ["userId", "url"])
+    .index("by_user_and_status", ["userId", "status"]),
 });
