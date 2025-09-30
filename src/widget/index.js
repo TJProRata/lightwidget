@@ -54,7 +54,6 @@ import '../components/ChatWidget2/ChatWidget2.css';
         z-index: 2147483647;
         width: 100%;
         height: 100%;
-        pointer-events: none;
         background: transparent;
       `;
       this.iframe.setAttribute('title', 'LightWidget Chat');
