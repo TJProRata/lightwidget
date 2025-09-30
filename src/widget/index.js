@@ -144,6 +144,7 @@ import '../components/ChatWidget2/ChatWidget2.css';
     }
 
     setupMessageListener() {
+      // Listen for messages from iframe widget
       window.addEventListener('message', (event) => {
         // Validate message source
         if (event.source !== this.iframe.contentWindow) {
@@ -152,6 +153,21 @@ import '../components/ChatWidget2/ChatWidget2.css';
 
         // Handle messages from widget
         this.handleMessage(event.data);
+      });
+
+      // Listen for clicks on parent page to detect outside clicks
+      document.addEventListener('mousedown', (event) => {
+        if (this.iframe && !this.iframe.contains(event.target)) {
+          // Click is outside the iframe, notify the widget
+          this.sendMessage('CLICK_OUTSIDE', {});
+        }
+      });
+
+      document.addEventListener('touchstart', (event) => {
+        if (this.iframe && !this.iframe.contains(event.target)) {
+          // Touch is outside the iframe, notify the widget
+          this.sendMessage('CLICK_OUTSIDE', {});
+        }
       });
     }
 

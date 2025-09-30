@@ -186,7 +186,7 @@ export const AskAIContainer = ({ config = {} }) => {
     };
   }, [isExpanded]);
 
-  // Click outside to collapse
+  // Click outside to collapse (handles both iframe clicks and parent page clicks)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target) && isExpanded) {
@@ -211,14 +211,39 @@ export const AskAIContainer = ({ config = {} }) => {
       }
     };
 
+    const handleParentClickOutside = (event) => {
+      // Handle messages from parent window (clicks outside iframe)
+      if (event.data && event.data.type === 'CLICK_OUTSIDE' && isExpanded) {
+        if (isSearchFocused) {
+          setIsSearchFocused(false);
+        } else {
+          // Collapse widget
+          setIsExpanded(false);
+          setShowSearchBar(false);
+          setShowTrendingSearches(false);
+          setShowExpandButton(false);
+          setCounters(TRENDING_SEARCHES.map(() => 0));
+          setSearchValue('');
+          setShowAutocomplete(false);
+          setContentState(CONTENT_STATES.IDLE);
+          setResults(null);
+          setSearchQuery('');
+        }
+      }
+    };
+
     if (isExpanded) {
+      // Listen for clicks inside the iframe
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
+      // Listen for messages from parent window
+      window.addEventListener('message', handleParentClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
+      window.removeEventListener('message', handleParentClickOutside);
     };
   }, [isExpanded, isSearchFocused]);
 
