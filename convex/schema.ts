@@ -1,14 +1,26 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
-  // Store customer accounts for multi-tenancy
-  customers: defineTable({
-    customerId: v.string(),
-    email: v.string(),
+  ...authTables,
+
+  // Users table (replaces customers, merged with Convex Auth)
+  users: defineTable({
+    // Convex Auth fields
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    image: v.optional(v.string()),
+    isAnonymous: v.optional(v.boolean()),
+    // Google OAuth fields
+    googleId: v.optional(v.string()),
+    // LightWidget custom fields
     apiKey: v.string(),
-    openaiApiKey: v.string(),
-    domain: v.string(),
+    openaiApiKey: v.optional(v.string()),
+    domain: v.optional(v.string()),
     isActive: v.boolean(),
     plan: v.string(), // "free", "pro", "enterprise"
     createdAt: v.number(),
@@ -17,12 +29,14 @@ export default defineSchema({
       position: v.string(),
       brandColor: v.string()
     }))
-  }).index("by_api_key", ["apiKey"]).index("by_customer_id", ["customerId"]),
+  })
+    .index("email", ["email"])
+    .index("by_api_key", ["apiKey"]),
 
   // Store chat messages with conversation tree structure
   messages: defineTable({
-    customerId: v.optional(v.string()), // NEW: scope to customer
-    sessionId: v.optional(v.string()), // Customer's end-user session
+    userId: v.optional(v.id("users")), // User who owns this widget
+    sessionId: v.optional(v.string()), // End-user session on customer's website
     query: v.string(),
     answer: v.string(),
     sources: v.optional(v.array(v.object({
@@ -30,30 +44,29 @@ export default defineSchema({
       percentage: v.number()
     }))),
     suggestions: v.optional(v.array(v.string())),
-    userId: v.optional(v.string()),
     tabId: v.optional(v.id("chatTabs")),
     parentMessageId: v.optional(v.id("messages")), // Reference to parent message for tree structure
     sequenceNumber: v.number(), // Order in the conversation (0, 1, 2, etc.)
     conversationPath: v.string(), // Path like "0" or "0.1" or "0.1.2" for branching
     timestamp: v.number(),
-  }),
+  }).index("by_user", ["userId"]),
 
   // Store chat tabs
   chatTabs: defineTable({
     title: v.string(),
     query: v.string(),
-    userId: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
     timestamp: v.number(),
     isActive: v.boolean(),
-  }),
+  }).index("by_user", ["userId"]),
 
   // Store prompt history
   promptHistory: defineTable({
     title: v.string(),
     query: v.string(),
-    userId: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
     timestamp: v.number(),
-  }),
+  }).index("by_user", ["userId"]),
 
   // Store suggestions
   suggestions: defineTable({
@@ -71,12 +84,12 @@ export default defineSchema({
 
   // Store webpage content for context-aware responses
   webpageContent: defineTable({
-    customerId: v.optional(v.string()), // NEW: scope to customer
+    userId: v.optional(v.id("users")), // User who owns this widget
     url: v.string(),
     title: v.string(),
     content: v.string(),
     htmlSnippet: v.optional(v.string()),
     timestamp: v.number(),
-    userId: v.optional(v.string()),
-  }).index("by_customer_id", ["customerId"]),
+    sessionId: v.optional(v.string()), // End-user session
+  }).index("by_user", ["userId"]),
 });

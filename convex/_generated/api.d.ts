@@ -14,9 +14,11 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as analytics from "../analytics.js";
+import type * as apiKeyAuth from "../apiKeyAuth.js";
 import type * as auth from "../auth.js";
 import type * as chat from "../chat.js";
 import type * as customers from "../customers.js";
+import type * as http from "../http.js";
 import type * as messages from "../messages.js";
 import type * as openai from "../openai.js";
 import type * as suggestions from "../suggestions.js";
@@ -32,9 +34,11 @@ import type * as webpage from "../webpage.js";
  */
 declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
+  apiKeyAuth: typeof apiKeyAuth;
   auth: typeof auth;
   chat: typeof chat;
   customers: typeof customers;
+  http: typeof http;
   messages: typeof messages;
   openai: typeof openai;
   suggestions: typeof suggestions;
