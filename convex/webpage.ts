@@ -9,26 +9,26 @@ export const storeWebpageContentWithApiKey = mutation({
     title: v.string(),
     content: v.string(),
     htmlSnippet: v.optional(v.string()),
-    userId: v.optional(v.string()),
+    sessionId: v.optional(v.string()),
     apiKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let customerId: string | undefined = undefined;
+    let userId: string | undefined = undefined;
 
     // Validate API key if provided
     if (args.apiKey) {
-      const customer = await ctx.runQuery(api.auth.validateApiKey, {
+      const customer = await ctx.runQuery(api.apiKeyAuth.validateApiKey, {
         apiKey: args.apiKey
       });
-      customerId = customer.customerId;
+      userId = customer.userId;
     }
 
-    // Check if content for this URL already exists for this customer
+    // Check if content for this URL already exists for this user
     let query = ctx.db.query("webpageContent");
 
-    if (customerId) {
-      query = query.withIndex("by_customer_id", (q) =>
-        q.eq("customerId", customerId)
+    if (userId) {
+      query = query.withIndex("by_user", (q) =>
+        q.eq("userId", userId)
       );
     }
 
@@ -42,8 +42,8 @@ export const storeWebpageContentWithApiKey = mutation({
         content: args.content,
         htmlSnippet: args.htmlSnippet,
         timestamp: Date.now(),
-        userId: args.userId,
-        customerId: customerId,
+        sessionId: args.sessionId,
+        userId: userId,
       });
       return existing._id;
     }
@@ -55,31 +55,31 @@ export const storeWebpageContentWithApiKey = mutation({
       content: args.content,
       htmlSnippet: args.htmlSnippet,
       timestamp: Date.now(),
-      userId: args.userId,
-      customerId: customerId,
+      sessionId: args.sessionId,
+      userId: userId,
     });
 
     return id;
   },
 });
 
-// Store webpage content (legacy, direct customerId)
+// Store webpage content (legacy, direct userId)
 export const storeWebpageContent = mutation({
   args: {
     url: v.string(),
     title: v.string(),
     content: v.string(),
     htmlSnippet: v.optional(v.string()),
-    userId: v.optional(v.string()),
-    customerId: v.optional(v.string()),
+    sessionId: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    // Check if content for this URL already exists for this customer
+    // Check if content for this URL already exists for this user
     let query = ctx.db.query("webpageContent");
 
-    if (args.customerId) {
-      query = query.withIndex("by_customer_id", (q) =>
-        q.eq("customerId", args.customerId)
+    if (args.userId) {
+      query = query.withIndex("by_user", (q) =>
+        q.eq("userId", args.userId)
       );
     }
 
@@ -93,8 +93,8 @@ export const storeWebpageContent = mutation({
         content: args.content,
         htmlSnippet: args.htmlSnippet,
         timestamp: Date.now(),
+        sessionId: args.sessionId,
         userId: args.userId,
-        customerId: args.customerId,
       });
       return existing._id;
     }
@@ -106,8 +106,8 @@ export const storeWebpageContent = mutation({
       content: args.content,
       htmlSnippet: args.htmlSnippet,
       timestamp: Date.now(),
+      sessionId: args.sessionId,
       userId: args.userId,
-      customerId: args.customerId,
     });
 
     return id;
@@ -118,14 +118,14 @@ export const storeWebpageContent = mutation({
 export const getWebpageContent = query({
   args: {
     url: v.string(),
-    customerId: v.optional(v.string()),
+    customerId: v.optional(v.string()), // Keep as customerId for backward compatibility but map to userId
   },
   handler: async (ctx, args) => {
     let query = ctx.db.query("webpageContent");
 
     if (args.customerId) {
-      query = query.withIndex("by_customer_id", (q) =>
-        q.eq("customerId", args.customerId)
+      query = query.withIndex("by_user", (q) =>
+        q.eq("userId", args.customerId)
       );
     }
 
@@ -136,17 +136,17 @@ export const getWebpageContent = query({
   },
 });
 
-// Clear all webpage content (optionally scoped to customer)
+// Clear all webpage content (optionally scoped to user)
 export const clearAllWebpageContent = mutation({
   args: {
-    customerId: v.optional(v.string()),
+    customerId: v.optional(v.string()), // Keep as customerId for backward compatibility but map to userId
   },
   handler: async (ctx, args) => {
     let query = ctx.db.query("webpageContent");
 
     if (args.customerId) {
-      query = query.withIndex("by_customer_id", (q) =>
-        q.eq("customerId", args.customerId)
+      query = query.withIndex("by_user", (q) =>
+        q.eq("userId", args.customerId)
       );
     }
 
