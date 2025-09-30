@@ -92,6 +92,19 @@ export default function Dashboard() {
 
     setCrawling(true);
     try {
+      // First save the domain and settings to ensure they're persisted
+      await updateSettings({
+        domain: formData.domain,
+        theme: formData.theme,
+        position: formData.position,
+        brandColor: formData.brandColor,
+        enableFullSiteCrawl: formData.enableFullSiteCrawl,
+        maxPages: formData.maxPages || 100,
+        maxDepth: formData.maxDepth || 3,
+        excludePatterns: formData.excludePatterns || []
+      });
+
+      // Then initiate the crawl
       const result = await initiateCrawl();
       alert(`Crawl completed! Indexed ${result.totalPages} pages.`);
     } catch (error) {
