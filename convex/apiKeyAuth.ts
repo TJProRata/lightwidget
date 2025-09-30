@@ -11,25 +11,25 @@ export const validateApiKey = query({
       throw new Error("API key is required");
     }
 
-    const customer = await ctx.db
-      .query("customers")
+    const user = await ctx.db
+      .query("users")
       .withIndex("by_api_key", (q) => q.eq("apiKey", args.apiKey))
       .first();
 
-    if (!customer) {
+    if (!user) {
       throw new Error("Invalid API key");
     }
 
-    if (!customer.isActive) {
-      throw new Error("Customer account is inactive");
+    if (!user.isActive) {
+      throw new Error("User account is inactive");
     }
 
     return {
-      customerId: customer.customerId,
-      settings: customer.settings,
-      domain: customer.domain,
-      plan: customer.plan,
-      hasOpenAIKey: customer.openaiApiKey !== ""
+      userId: user._id,
+      settings: user.settings,
+      domain: user.domain,
+      plan: user.plan,
+      hasOpenAIKey: !!user.openaiApiKey && user.openaiApiKey !== ""
     };
   },
 });
@@ -45,73 +45,73 @@ export const validateApiKeyAndOrigin = query({
       throw new Error("API key is required");
     }
 
-    const customer = await ctx.db
-      .query("customers")
+    const user = await ctx.db
+      .query("users")
       .withIndex("by_api_key", (q) => q.eq("apiKey", args.apiKey))
       .first();
 
-    if (!customer) {
+    if (!user) {
       throw new Error("Invalid API key");
     }
 
-    if (!customer.isActive) {
-      throw new Error("Customer account is inactive");
+    if (!user.isActive) {
+      throw new Error("User account is inactive");
     }
 
-    // Validate origin against customer's allowed domain
+    // Validate origin against user's allowed domain
     // Support wildcards like *.example.com or specific domains
-    const allowedDomains = customer.domain.split(',').map(d => d.trim());
+    const allowedDomains = (user.domain || "").split(',').map(d => d.trim()).filter(d => d !== "");
 
-    let isAuthorized = false;
-    for (const domain of allowedDomains) {
-      // Handle wildcard domains
-      if (domain.startsWith('*.')) {
-        const baseDomain = domain.substring(2);
-        if (args.origin.endsWith(baseDomain)) {
+    // If no domains configured, allow all (for initial setup)
+    if (allowedDomains.length > 0) {
+      let isAuthorized = false;
+      for (const domain of allowedDomains) {
+        // Handle wildcard domains
+        if (domain.startsWith('*.')) {
+          const baseDomain = domain.substring(2);
+          if (args.origin.endsWith(baseDomain)) {
+            isAuthorized = true;
+            break;
+          }
+        } else if (args.origin.includes(domain)) {
           isAuthorized = true;
           break;
         }
-      } else if (args.origin.includes(domain)) {
-        isAuthorized = true;
-        break;
+      }
+
+      if (!isAuthorized) {
+        throw new Error(`Unauthorized domain: ${args.origin}. Allowed domains: ${user.domain}`);
       }
     }
 
-    if (!isAuthorized) {
-      throw new Error(`Unauthorized domain: ${args.origin}. Allowed domains: ${customer.domain}`);
-    }
-
     return {
-      customerId: customer.customerId,
-      settings: customer.settings,
-      domain: customer.domain,
-      plan: customer.plan,
-      hasOpenAIKey: customer.openaiApiKey !== ""
+      userId: user._id,
+      settings: user.settings,
+      domain: user.domain,
+      plan: user.plan,
+      hasOpenAIKey: !!user.openaiApiKey && user.openaiApiKey !== ""
     };
   },
 });
 
-// Get customer's OpenAI API key (used internally by actions)
-export const getCustomerOpenAIKey = query({
+// Get user's OpenAI API key (used internally by actions)
+export const getUserOpenAIKey = query({
   args: {
-    customerId: v.string()
+    userId: v.id("users")
   },
   handler: async (ctx, args) => {
-    const customer = await ctx.db
-      .query("customers")
-      .withIndex("by_customer_id", (q) => q.eq("customerId", args.customerId))
-      .first();
+    const user = await ctx.db.get(args.userId);
 
-    if (!customer) {
-      throw new Error("Customer not found");
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    if (!customer.openaiApiKey || customer.openaiApiKey === "") {
-      throw new Error("OpenAI API key not configured for this customer");
+    if (!user.openaiApiKey || user.openaiApiKey === "") {
+      throw new Error("OpenAI API key not configured for this user");
     }
 
     return {
-      openaiApiKey: customer.openaiApiKey
+      openaiApiKey: user.openaiApiKey
     };
   },
 });

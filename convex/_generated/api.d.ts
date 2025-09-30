@@ -22,6 +22,12 @@ import type * as http from "../http.js";
 import type * as messages from "../messages.js";
 import type * as openai from "../openai.js";
 import type * as suggestions from "../suggestions.js";
+import type * as users_currentUser from "../users/currentUser.js";
+import type * as users_getAllUsers from "../users/getAllUsers.js";
+import type * as users_getUserById from "../users/getUserById.js";
+import type * as users_helpers from "../users/helpers.js";
+import type * as users_initializeUser from "../users/initializeUser.js";
+import type * as users_updateWidgetSettings from "../users/updateWidgetSettings.js";
 import type * as webpage from "../webpage.js";
 
 /**
@@ -42,6 +48,12 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   openai: typeof openai;
   suggestions: typeof suggestions;
+  "users/currentUser": typeof users_currentUser;
+  "users/getAllUsers": typeof users_getAllUsers;
+  "users/getUserById": typeof users_getUserById;
+  "users/helpers": typeof users_helpers;
+  "users/initializeUser": typeof users_initializeUser;
+  "users/updateWidgetSettings": typeof users_updateWidgetSettings;
   webpage: typeof webpage;
 }>;
 export declare const api: FilterApi<
