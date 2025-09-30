@@ -9,16 +9,24 @@ export default function Dashboard() {
   const currentUser = useQuery(api.users.currentUser.getCurrentUser);
   const initializeUser = useMutation(api.users.initializeUser.initializeUser);
   const updateSettings = useMutation(api.users.updateWidgetSettings.updateWidgetSettings);
+  const initiateCrawl = useMutation(api.siteCrawler.initiateCrawl);
+  const crawlStatus = useQuery(api.siteCrawler.getCrawlStatus);
+  const indexedPages = useQuery(api.siteCrawler.getIndexedPages, { limit: 10 });
+  const clearPages = useMutation(api.siteCrawler.clearIndexedPages);
 
   const [formData, setFormData] = useState({
     domain: '',
     theme: 'light',
     position: 'bottom-center',
-    brandColor: '#C081FF'
+    brandColor: '#C081FF',
+    enableFullSiteCrawl: false,
+    maxPages: 100,
+    maxDepth: 3
   });
 
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [crawling, setCrawling] = useState(false);
 
   // Initialize user on first load if needed
   useEffect(() => {
@@ -34,14 +42,20 @@ export default function Dashboard() {
         domain: currentUser.domain || '',
         theme: currentUser.settings?.theme || 'light',
         position: currentUser.settings?.position || 'bottom-center',
-        brandColor: currentUser.settings?.brandColor || '#C081FF'
+        brandColor: currentUser.settings?.brandColor || '#C081FF',
+        enableFullSiteCrawl: currentUser.crawlSettings?.enableFullSiteCrawl || false,
+        maxPages: currentUser.crawlSettings?.maxPages || 100,
+        maxDepth: currentUser.crawlSettings?.maxDepth || 3
       });
     }
   }, [currentUser]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSave = async () => {
@@ -52,12 +66,53 @@ export default function Dashboard() {
         theme: formData.theme,
         position: formData.position,
         brandColor: formData.brandColor,
+        enableFullSiteCrawl: formData.enableFullSiteCrawl,
+        maxPages: formData.maxPages,
+        maxDepth: formData.maxDepth,
+        excludePatterns: []
       });
+      alert('Settings saved successfully!');
     } catch (error) {
       console.error('Failed to save settings:', error);
       alert('Failed to save settings. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleStartCrawl = async () => {
+    if (!formData.domain) {
+      alert('Please set your domain before crawling');
+      return;
+    }
+    if (!formData.enableFullSiteCrawl) {
+      alert('Please enable "Use All Website Data" before crawling');
+      return;
+    }
+
+    setCrawling(true);
+    try {
+      const result = await initiateCrawl();
+      alert(`Crawl completed! Indexed ${result.totalPages} pages.`);
+    } catch (error) {
+      console.error('Crawl failed:', error);
+      alert(`Crawl failed: ${error.message}`);
+    } finally {
+      setCrawling(false);
+    }
+  };
+
+  const handleClearPages = async () => {
+    if (!confirm('Are you sure you want to clear all indexed pages?')) {
+      return;
+    }
+
+    try {
+      const result = await clearPages();
+      alert(`Cleared ${result.deletedCount} indexed pages`);
+    } catch (error) {
+      console.error('Failed to clear pages:', error);
+      alert('Failed to clear indexed pages');
     }
   };
 
@@ -140,6 +195,111 @@ export default function Dashboard() {
                   <p className="mt-1 text-xs text-gray-500">
                     Leave empty during testing. Widget will only work on this domain when set.
                   </p>
+                </div>
+
+                {/* Full Site Crawl */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center mb-3">
+                    <input
+                      type="checkbox"
+                      name="enableFullSiteCrawl"
+                      checked={formData.enableFullSiteCrawl}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 block text-sm font-medium text-gray-700">
+                      Use All Website Data
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Allow the widget to access and learn from all pages on your website for better answers
+                  </p>
+
+                  {formData.enableFullSiteCrawl && (
+                    <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Max Pages
+                          </label>
+                          <input
+                            type="number"
+                            name="maxPages"
+                            value={formData.maxPages}
+                            onChange={handleInputChange}
+                            min="10"
+                            max="500"
+                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Crawl Depth
+                          </label>
+                          <input
+                            type="number"
+                            name="maxDepth"
+                            value={formData.maxDepth}
+                            onChange={handleInputChange}
+                            min="1"
+                            max="5"
+                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Crawl Status */}
+                      {crawlStatus && (
+                        <div className="mt-3 text-xs">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-gray-600">Status:</span>
+                            <span className={`font-medium ${
+                              crawlStatus.status === 'completed' ? 'text-green-600' :
+                              crawlStatus.status === 'in_progress' ? 'text-blue-600' :
+                              crawlStatus.status === 'error' ? 'text-red-600' :
+                              'text-gray-600'
+                            }`}>
+                              {crawlStatus.status}
+                            </span>
+                          </div>
+                          {crawlStatus.totalPagesIndexed > 0 && (
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-gray-600">Pages Indexed:</span>
+                              <span className="font-medium">{crawlStatus.totalPagesIndexed}</span>
+                            </div>
+                          )}
+                          {crawlStatus.lastCrawlDate && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">Last Crawl:</span>
+                              <span className="font-medium">
+                                {new Date(crawlStatus.lastCrawlDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Crawl Actions */}
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={handleStartCrawl}
+                          disabled={crawling || !formData.domain}
+                          className="flex-1 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {crawling ? 'Crawling...' : 'Start Crawl'}
+                        </button>
+                        {crawlStatus?.totalPagesIndexed > 0 && (
+                          <button
+                            onClick={handleClearPages}
+                            disabled={crawling}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Theme */}

@@ -1,6 +1,7 @@
 import { action, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 /**
  * Public action to initiate a full site crawl
@@ -9,12 +10,10 @@ export const initiateCrawl = action({
   args: {},
   handler: async (ctx) => {
     // Get authenticated user
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
       throw new Error("Not authenticated");
     }
-
-    const userId = identity.subject as any;
 
     // Get user to find their domain
     const user = await ctx.runQuery(internal.crawler.getUserCrawlSettings, {
@@ -51,12 +50,10 @@ export const initiateCrawl = action({
 export const getCrawlStatus = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
       throw new Error("Not authenticated");
     }
-
-    const userId = identity.subject as any;
 
     return await ctx.runQuery(internal.crawler.getCrawlStatus, { userId });
   }
@@ -70,12 +67,10 @@ export const getIndexedPages = query({
     limit: v.optional(v.number())
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
       throw new Error("Not authenticated");
     }
-
-    const userId = identity.subject as any;
 
     const pages = await ctx.db
       .query("sitePages")
@@ -101,12 +96,10 @@ export const getIndexedPages = query({
 export const clearIndexedPages = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
       throw new Error("Not authenticated");
     }
-
-    const userId = identity.subject as any;
 
     // Get all pages for this user
     const pages = await ctx.db
