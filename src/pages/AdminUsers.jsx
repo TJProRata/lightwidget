@@ -66,6 +66,12 @@ export default function AdminUsers() {
             >
               Dashboard
             </button>
+            <button
+              onClick={() => navigate('/science')}
+              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              Playground
+            </button>
             <span className="text-sm text-gray-600">{currentUser?.email}</span>
             <SignOutButton />
           </div>

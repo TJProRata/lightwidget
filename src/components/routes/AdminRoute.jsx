@@ -4,7 +4,7 @@ import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
-const ADMIN_EMAILS = ["email@prorata.ai"];
+const ADMIN_EMAILS = ["email@prorata.ai", "tj@prorata.ai"];
 
 export function AdminRoute({ children }) {
   const currentUser = useQuery(api.users.currentUser.getCurrentUser);

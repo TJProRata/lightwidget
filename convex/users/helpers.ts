@@ -1,7 +1,7 @@
 import { QueryCtx, MutationCtx } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-const ADMIN_EMAILS = ["email@prorata.ai"];
+const ADMIN_EMAILS = ["email@prorata.ai", "tj@prorata.ai"];
 
 /**
  * Require that the user is authenticated and return their user ID

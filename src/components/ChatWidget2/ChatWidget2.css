@@ -108,7 +108,7 @@
   font-size: 24px;
   font-weight: bold;
   color: #1f2937;
-  margin: 0;
+  margin: 0 0 10px 0;
 }
 
 .cw2-search-bar-container {
@@ -259,7 +259,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  margin: 0 auto;
+  margin: 0 auto 10px auto;
   position: relative;
   overflow: hidden;
   will-change: transform, opacity;

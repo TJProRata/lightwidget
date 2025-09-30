@@ -29,8 +29,9 @@ export const AskAIContainer = ({ config = {} }) => {
   // Generate session ID
   const sessionId = useRef(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).current;
 
-  // Extract apiKey from config
+  // Extract apiKey and userId from config
   const apiKey = config.apiKey;
+  const userId = config.userId || sessionId; // Use userId from config if available, otherwise use sessionId
 
   // Convex hooks
   const sendMessage = useMutation(api.messages.sendMessage);
@@ -99,7 +100,7 @@ export const AskAIContainer = ({ config = {} }) => {
             title,
             content,
             htmlSnippet,
-            userId: sessionId,
+            userId: userId,
             apiKey: apiKey
           });
         } else {
@@ -109,7 +110,7 @@ export const AskAIContainer = ({ config = {} }) => {
             title,
             content,
             htmlSnippet,
-            userId: sessionId
+            userId: userId
           });
         }
 
@@ -177,7 +178,7 @@ export const AskAIContainer = ({ config = {} }) => {
 
     const expandButtonTimer = setTimeout(() => {
       setShowExpandButton(true);
-    }, 600 + (TRENDING_SEARCHES.length * 600) + 200);
+    }, 1000);
 
     return () => {
       clearTimeout(searchBarTimer);
@@ -265,7 +266,7 @@ export const AskAIContainer = ({ config = {} }) => {
       if (currentMessage && currentMessage._id) {
         await deleteBranch({
           fromMessageId: currentMessage._id,
-          userId: sessionId
+          userId: userId
         });
       }
 
@@ -287,7 +288,7 @@ export const AskAIContainer = ({ config = {} }) => {
       // Call OpenAI action with webpage context (this also saves to database)
       const response = await generateAnswerWithContext({
         query: query,
-        userId: sessionId,
+        userId: userId,
         sequenceNumber: newSequenceNumber,
         conversationPath: newSequenceNumber.toString(),
         url: window.location.href,
@@ -530,7 +531,7 @@ export const AskAIContainer = ({ config = {} }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{
                   delay: isSearchFocused ? 0 : 0.4,
-                  duration: isSearchFocused ? 0.2 : 0.4
+                  duration: isSearchFocused ? 0.05 : 0.4
                 }}
               >
                 <h1 className="cw2-ask-ai-title">Ask AI</h1>
@@ -773,7 +774,7 @@ export const AskAIContainer = ({ config = {} }) => {
                 exit={{
                   opacity: 0,
                   transition: {
-                    duration: isSearchFocused ? 0.1 : 0.2,
+                    duration: isSearchFocused ? 0.05 : 0.2,
                     ease: "easeOut"
                   }
                 }}
@@ -811,7 +812,7 @@ export const AskAIContainer = ({ config = {} }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{
-                  duration: isSearchFocused ? 0.15 : 0.4,
+                  duration: isSearchFocused ? 0.05 : 0.4,
                   ease: "easeOut"
                 }}
               >

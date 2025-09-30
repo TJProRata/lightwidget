@@ -16,11 +16,11 @@ export const ChatWidget2 = ({
   };
 
   const widgetStyle = {
-    position: 'absolute',
+    position: 'fixed',
     bottom: '24px',
     left: '50%',
     transform: 'translateX(-50%)',
-    zIndex: 1,
+    zIndex: 9999,
     pointerEvents: 'auto'
   };
 

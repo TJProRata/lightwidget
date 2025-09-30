@@ -4,6 +4,8 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import DemoPage from './pages/DemoPage';
 import AdminUsers from './pages/AdminUsers';
+import Science from './pages/Science';
+import Business from './pages/Business';
 import { ProtectedRoute } from './components/routes/ProtectedRoute';
 import { AdminRoute } from './components/routes/AdminRoute';
 
@@ -21,6 +23,8 @@ function App() {
           }
         />
         <Route path="/demo/:userId" element={<DemoPage />} />
+        <Route path="/science" element={<Science />} />
+        <Route path="/business" element={<Business />} />
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route
           path="/admin/users"

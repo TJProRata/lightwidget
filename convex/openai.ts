@@ -82,12 +82,18 @@ export const generateAnswerWithContext = action({
       const customer = await ctx.runQuery(api.auth.validateApiKey, {
         apiKey: args.apiKey
       });
-      customerId = customer.customerId;
+      customerId = customer.userId;
     }
 
     // Always use centralized OpenAI API key from environment
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+
+    if (!openaiApiKey) {
+      throw new Error("OPENAI_API_KEY not configured in Convex environment variables");
+    }
+
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: openaiApiKey,
     });
 
     try {

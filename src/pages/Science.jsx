@@ -1,7 +1,36 @@
-import React from 'react';
-import { ChatWidget2 } from '../components/ChatWidget2/ChatWidget2';
+import React, { useEffect } from 'react';
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 const Science = () => {
+  const currentUser = useQuery(api.users.currentUser.getCurrentUser);
+
+  useEffect(() => {
+    if (currentUser?.apiKey) {
+      const loaderUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3001/loader.js'
+        : 'https://lightwidget.vercel.app/loader.js';
+
+      window.LightWidgetConfig = {
+        apiKey: currentUser.apiKey,
+        position: currentUser.settings?.position || 'bottom-center',
+        theme: currentUser.settings?.theme || 'light'
+      };
+
+      const script = document.createElement('script');
+      script.src = loaderUrl;
+      script.async = true;
+      document.body.appendChild(script);
+
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+        delete window.LightWidgetConfig;
+      };
+    }
+  }, [currentUser?.apiKey, currentUser?.settings]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -12,10 +41,10 @@ const Science = () => {
               <h1 className="text-2xl font-bold text-gray-900">TechNews Today</h1>
             </div>
             <nav className="flex space-x-8">
-              <a href="/" className="text-gray-500 hover:text-gray-900">Home</a>
-              <a href="/technology" className="text-gray-500 hover:text-gray-900">Technology</a>
-              <a href="/business" className="text-gray-500 hover:text-gray-900">Business</a>
-              <a href="/science" className="text-gray-900 font-medium">Science</a>
+              <span className="text-gray-500 cursor-default">Home</span>
+              <span className="text-gray-500 cursor-default">Technology</span>
+              <span className="text-gray-500 cursor-default">Business</span>
+              <span className="text-gray-900 font-medium cursor-default">Science</span>
             </nav>
           </div>
         </div>
@@ -281,9 +310,6 @@ const Science = () => {
           </div>
         </div>
       </footer>
-
-      {/* Chat Widget */}
-      <ChatWidget2 position="bottom-center" />
     </div>
   );
 };

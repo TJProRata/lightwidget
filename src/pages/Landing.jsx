@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { SignInButton } from '../components/auth/SignInButton';
 import { SignInForm } from '../components/auth/SignInForm';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+
+const ADMIN_EMAILS = ["email@prorata.ai", "tj@prorata.ai"];
 
 export default function Landing() {
+  const navigate = useNavigate();
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const currentUser = useQuery(api.users.currentUser.getCurrentUser);
+
+  const isAdmin = currentUser?.email && ADMIN_EMAILS.includes(currentUser.email);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50">
@@ -19,7 +27,18 @@ export default function Landing() {
       </AuthLoading>
 
       <Authenticated>
-        <Navigate to="/dashboard" replace />
+        {currentUser === undefined ? (
+          // Still loading user data
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <p className="mt-4 text-gray-600">Loading...</p>
+            </div>
+          </div>
+        ) : (
+          // Redirect based on admin status
+          <Navigate to={isAdmin ? "/admin/users" : "/dashboard"} replace />
+        )}
       </Authenticated>
 
       <Unauthenticated>
@@ -34,6 +53,12 @@ export default function Landing() {
                 LightWidget
               </span>
             </div>
+            <button
+              onClick={() => navigate('/business')}
+              className="px-6 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              Business Demo
+            </button>
           </div>
         </header>
 
