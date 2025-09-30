@@ -100,7 +100,7 @@ export const AskAIContainer = ({ config = {} }) => {
             title,
             content,
             htmlSnippet,
-            userId: userId,
+            sessionId: userId,  // userId in widget is actually a session string
             apiKey: apiKey
           });
         } else {
@@ -110,7 +110,7 @@ export const AskAIContainer = ({ config = {} }) => {
             title,
             content,
             htmlSnippet,
-            userId: userId
+            sessionId: userId  // userId in widget is actually a session string
           });
         }
 

@@ -118,6 +118,8 @@ IMPORTANT INSTRUCTIONS:
       if (webpageContent) {
         systemMessage += `\n\n=== CURRENT PAGE (The page the user is viewing right now) ===\nTitle: ${webpageContent.title}\nURL: ${webpageContent.url}\n\nContent:\n${webpageContent.content.substring(0, 2000)}\n`; // Reduced to 2000 to make room for other pages
         contextSources.push({ name: webpageContent.title, url: webpageContent.url });
+      } else {
+        systemMessage += `\n\n=== NO PAGE CONTENT CAPTURED ===\nThe webpage content could not be captured. This may be because:\n1. The page is still loading\n2. The widget was just installed\n3. There was an error capturing the content\n\nWhen asked about "this page", explain that you don't have access to the page content at the moment.\n`;
       }
 
       // Check if user has full-site crawl enabled and search indexed pages
