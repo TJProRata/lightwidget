@@ -79,7 +79,7 @@ export const generateAnswerWithContext = action({
 
     // If customerId not provided, validate API key to get it
     if (!customerId && args.apiKey) {
-      const customer = await ctx.runQuery(api.auth.validateApiKey, {
+      const customer = await ctx.runQuery(api.apiKeyAuth.validateApiKey, {
         apiKey: args.apiKey
       });
       customerId = customer.userId;

@@ -50,12 +50,37 @@ export const initiateCrawl = action({
 export const getCrawlStatus = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not authenticated");
-    }
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (userId === null) {
+        throw new Error("Not authenticated");
+      }
 
-    return await ctx.runQuery(internal.crawler.getCrawlStatus, { userId });
+      // Log for debugging
+      console.log("getCrawlStatus - userId from getAuthUserId:", userId);
+
+      // Validate the userId format
+      if (typeof userId !== 'string' || userId.includes('|')) {
+        console.error("Invalid userId format received:", userId);
+        // Try to get the actual user from the database
+        const user = await ctx.db.get(userId as any);
+        if (!user) {
+          throw new Error("User not found");
+        }
+        return await ctx.runQuery(internal.crawler.getCrawlStatus, { userId: user._id });
+      }
+
+      return await ctx.runQuery(internal.crawler.getCrawlStatus, { userId });
+    } catch (error) {
+      console.error("Error in getCrawlStatus:", error);
+      // Return a default status if there's an error
+      return {
+        status: 'idle',
+        totalPages: 0,
+        lastCrawl: null,
+        error: null
+      };
+    }
   }
 });
 
@@ -67,26 +92,42 @@ export const getIndexedPages = query({
     limit: v.optional(v.number())
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not authenticated");
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (userId === null) {
+        throw new Error("Not authenticated");
+      }
+
+      // Log for debugging
+      console.log("getIndexedPages - userId from getAuthUserId:", userId);
+
+      // Validate the userId format - if it has a pipe, it's not a valid ID
+      if (typeof userId !== 'string' || userId.includes('|')) {
+        console.error("Invalid userId format in getIndexedPages:", userId);
+        // Return empty array if userId is invalid
+        return [];
+      }
+
+      const pages = await ctx.db
+        .query("sitePages")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .order("desc")
+        .take(args.limit || 50);
+
+      return pages.map(page => ({
+        _id: page._id,
+        url: page.url,
+        title: page.title,
+        status: page.status,
+        depth: page.depth,
+        lastCrawled: page.lastCrawled,
+        error: page.error
+      }));
+    } catch (error) {
+      console.error("Error in getIndexedPages:", error);
+      // Return empty array on error
+      return [];
     }
-
-    const pages = await ctx.db
-      .query("sitePages")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
-      .take(args.limit || 50);
-
-    return pages.map(page => ({
-      _id: page._id,
-      url: page.url,
-      title: page.title,
-      status: page.status,
-      depth: page.depth,
-      lastCrawled: page.lastCrawled,
-      error: page.error
-    }));
   }
 });
 
@@ -96,21 +137,32 @@ export const getIndexedPages = query({
 export const clearIndexedPages = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not authenticated");
-    }
+    try {
+      const userId = await getAuthUserId(ctx);
+      if (userId === null) {
+        throw new Error("Not authenticated");
+      }
 
-    // Get all pages for this user
-    const pages = await ctx.db
-      .query("sitePages")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
+      // Log for debugging
+      console.log("clearIndexedPages - userId from getAuthUserId:", userId);
 
-    // Delete all pages
-    for (const page of pages) {
-      await ctx.db.delete(page._id);
-    }
+      // Validate the userId format
+      if (typeof userId !== 'string' || userId.includes('|')) {
+        console.error("Invalid userId format in clearIndexedPages:", userId);
+        // Can't proceed with invalid userId
+        return { success: false, message: "Invalid user ID format" };
+      }
+
+      // Get all pages for this user
+      const pages = await ctx.db
+        .query("sitePages")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+
+      // Delete all pages
+      for (const page of pages) {
+        await ctx.db.delete(page._id);
+      }
 
     // Reset crawl status
     const user = await ctx.db.get(userId);
@@ -126,10 +178,18 @@ export const clearIndexedPages = mutation({
       });
     }
 
-    return {
-      success: true,
-      deletedCount: pages.length
-    };
+      return {
+        success: true,
+        deletedCount: pages.length
+      };
+    } catch (error) {
+      console.error("Error in clearIndexedPages:", error);
+      return {
+        success: false,
+        message: "Failed to clear indexed pages",
+        deletedCount: 0
+      };
+    }
   }
 });
 
