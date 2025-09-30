@@ -104,12 +104,19 @@ export const generateAnswerWithContext = action({
       });
 
       // Build system message with webpage context
-      let systemMessage = "You are a helpful AI assistant. Provide concise, informative answers.";
+      let systemMessage = `You are an AI assistant embedded on a webpage as a chat widget. You have been given the content of the webpage and related pages from the same website. You MUST use this provided context to answer questions.
+
+IMPORTANT INSTRUCTIONS:
+- When asked "what is this page" or "what is on this page", describe the current page content provided below
+- When asked about any topic, FIRST check if it's mentioned in the provided page content
+- Use ONLY the provided page content to answer questions - do not make up information
+- If the information isn't in the provided context, say "I don't have information about that on this page"
+- Always be specific and reference the actual content you were given`;
       let contextSources = [];
 
       // Add current page context
       if (webpageContent) {
-        systemMessage += `\n\nYou have access to the content of the current webpage the user is viewing:\n\nPage Title: ${webpageContent.title}\nPage URL: ${webpageContent.url}\n\nPage Content:\n${webpageContent.content.substring(0, 2000)}`; // Reduced to 2000 to make room for other pages
+        systemMessage += `\n\n=== CURRENT PAGE (The page the user is viewing right now) ===\nTitle: ${webpageContent.title}\nURL: ${webpageContent.url}\n\nContent:\n${webpageContent.content.substring(0, 2000)}\n`; // Reduced to 2000 to make room for other pages
         contextSources.push({ name: webpageContent.title, url: webpageContent.url });
       }
 
@@ -130,14 +137,15 @@ export const generateAnswerWithContext = action({
             });
 
             if (relevantPages.length > 0) {
-              systemMessage += `\n\nYou also have access to content from other pages on this website that may be relevant:\n\n`;
+              systemMessage += `\n\n=== RELATED PAGES FROM THIS WEBSITE ===\n`;
+              systemMessage += `The following pages from the same website contain information related to the user's question:\n`;
 
               relevantPages.forEach((page, index) => {
-                systemMessage += `\n--- Related Page ${index + 1} ---\nTitle: ${page.title}\nURL: ${page.url}\nContent: ${page.content}\n`;
+                systemMessage += `\n--- Page ${index + 1}: ${page.title} ---\nURL: ${page.url}\nContent:\n${page.content}\n`;
                 contextSources.push({ name: page.title, url: page.url });
               });
 
-              systemMessage += `\n\nWhen answering, you can reference information from any of these pages. Always cite which page you're referencing in your answer.`;
+              systemMessage += `\nIMPORTANT: Use information from these related pages to provide comprehensive answers. When you use information from a related page, mention which page it came from.`;
             }
           }
         } catch (error) {
@@ -145,6 +153,9 @@ export const generateAnswerWithContext = action({
           // Continue with just current page context
         }
       }
+
+      // Add final reminder to use context
+      systemMessage += `\n\nREMEMBER: You are answering questions about the specific webpage content provided above. Always use this context to answer questions. If asked "what is this page" or similar, describe the current page content.`;
 
       // Call OpenAI API with context
       const completion = await openai.chat.completions.create({
