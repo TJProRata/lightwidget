@@ -116,7 +116,7 @@ IMPORTANT INSTRUCTIONS:
 
       // Add current page context
       if (webpageContent) {
-        systemMessage += `\n\n=== CURRENT PAGE (The page the user is viewing right now) ===\nTitle: ${webpageContent.title}\nURL: ${webpageContent.url}\n\nContent:\n${webpageContent.content.substring(0, 2000)}\n`; // Reduced to 2000 to make room for other pages
+        systemMessage += `\n\n=== CURRENT PAGE (The page the user is viewing right now) ===\nTitle: ${webpageContent.title}\nURL: ${webpageContent.url}\n\nContent:\n${webpageContent.content.substring(0, 8000)}\n`; // Increased to 8000 to capture more content
         contextSources.push({ name: webpageContent.title, url: webpageContent.url });
       } else {
         systemMessage += `\n\n=== NO PAGE CONTENT CAPTURED ===\nThe webpage content could not be captured. This may be because:\n1. The page is still loading\n2. The widget was just installed\n3. There was an error capturing the content\n\nWhen asked about "this page", explain that you don't have access to the page content at the moment.\n`;
@@ -143,7 +143,9 @@ IMPORTANT INSTRUCTIONS:
               systemMessage += `The following pages from the same website contain information related to the user's question:\n`;
 
               relevantPages.forEach((page, index) => {
-                systemMessage += `\n--- Page ${index + 1}: ${page.title} ---\nURL: ${page.url}\nContent:\n${page.content}\n`;
+                // Limit related page content to 1500 chars to balance token usage
+                const truncatedContent = page.content.substring(0, 1500);
+                systemMessage += `\n--- Page ${index + 1}: ${page.title} ---\nURL: ${page.url}\nContent:\n${truncatedContent}\n`;
                 contextSources.push({ name: page.title, url: page.url });
               });
 

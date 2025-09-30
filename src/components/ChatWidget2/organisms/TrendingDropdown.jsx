@@ -90,7 +90,53 @@ export const AskAIContainer = ({ config = {} }) => {
       try {
         const url = window.location.href;
         const title = document.title;
-        const content = document.body.innerText;
+
+        // Smart content extraction - target main content areas
+        let content = '';
+
+        // Try to find main content areas in order of preference
+        const contentSelectors = [
+          'main',
+          'article',
+          '[role="main"]',
+          '#main',
+          '.main',
+          '#content',
+          '.content',
+          '.post-content',
+          '.entry-content',
+          '.article-content'
+        ];
+
+        let mainContent = null;
+        for (const selector of contentSelectors) {
+          mainContent = document.querySelector(selector);
+          if (mainContent) break;
+        }
+
+        if (mainContent) {
+          // If we found a main content area, extract from there
+          content = mainContent.innerText;
+        } else {
+          // Fallback: Get body text but try to exclude common boilerplate
+          const body = document.body.cloneNode(true);
+
+          // Remove common boilerplate elements
+          const selectorsToRemove = [
+            'nav', 'header', 'footer', 'aside',
+            '.nav', '.navigation', '.header', '.footer', '.sidebar',
+            '#nav', '#navigation', '#header', '#footer', '#sidebar',
+            '[role="navigation"]', '[role="banner"]', '[role="contentinfo"]',
+            '.cookie-banner', '.advertisement', '.ads', '.ad'
+          ];
+
+          selectorsToRemove.forEach(selector => {
+            body.querySelectorAll(selector).forEach(el => el.remove());
+          });
+
+          content = body.innerText;
+        }
+
         const htmlSnippet = document.body.innerHTML.substring(0, 1000);
 
         // Use new mutation that validates API key
@@ -114,7 +160,12 @@ export const AskAIContainer = ({ config = {} }) => {
           });
         }
 
-        console.log("Webpage content captured and stored");
+        console.log("Webpage content captured:", {
+          url,
+          title,
+          contentLength: content.length,
+          extractionMethod: mainContent ? `Found main content: ${mainContent.tagName}` : 'Fallback method'
+        });
       } catch (error) {
         console.error("Failed to capture webpage content:", error);
       }
