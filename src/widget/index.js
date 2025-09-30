@@ -55,6 +55,7 @@ import '../components/ChatWidget2/ChatWidget2.css';
         width: 100%;
         height: 100%;
         background: transparent;
+        pointer-events: none;
       `;
       this.iframe.setAttribute('title', 'LightWidget Chat');
       this.iframe.setAttribute('id', 'lightwidget-iframe');
@@ -156,18 +157,14 @@ import '../components/ChatWidget2/ChatWidget2.css';
       });
 
       // Listen for clicks on parent page to detect outside clicks
-      document.addEventListener('mousedown', (event) => {
-        if (this.iframe && !this.iframe.contains(event.target)) {
-          // Click is outside the iframe, notify the widget
-          this.sendMessage('CLICK_OUTSIDE', {});
-        }
+      // Since iframe has pointer-events: none and widget has pointer-events: auto,
+      // any click that reaches this listener is outside the widget
+      document.addEventListener('mousedown', () => {
+        this.sendMessage('CLICK_OUTSIDE', {});
       });
 
-      document.addEventListener('touchstart', (event) => {
-        if (this.iframe && !this.iframe.contains(event.target)) {
-          // Touch is outside the iframe, notify the widget
-          this.sendMessage('CLICK_OUTSIDE', {});
-        }
+      document.addEventListener('touchstart', () => {
+        this.sendMessage('CLICK_OUTSIDE', {});
       });
     }
 
